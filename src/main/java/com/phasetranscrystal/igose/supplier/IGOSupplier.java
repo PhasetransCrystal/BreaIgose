@@ -1,13 +1,13 @@
 package com.phasetranscrystal.igose.supplier;
 
-import com.phasetranscrystal.nonard.ArkdustNonatomic;
-import com.phasetranscrystal.nonard.migrate.ingame_obj_se.extractor.ExtractResultPreview;
+import com.phasetranscrystal.igose.BreaIgose;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
+//TODO contentStack化改造。ContentStack为只读/副本模型，不直接造成变动。
 public interface IGOSupplier<T> {
-    ResourceLocation NAME = ArkdustNonatomic.location("igm_supplier");
+    ResourceLocation NAME = BreaIgose.location("igm_supplier");
 
     Class<T> targetClass();
 
