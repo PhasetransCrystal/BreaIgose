@@ -8,6 +8,10 @@ import java.util.List;
 public abstract class SimpleIGOMultiSupplier<T> extends SimpleIGOSupplier<T> implements IGOMultiSupplier<T>{
     protected final List<IGOSupplier<T>> suppliers = new ArrayList<>();
 
+    public SimpleIGOMultiSupplier(boolean isSnapshot) {
+        super(isSnapshot);
+    }
+
     @Override
     public @NotNull List<IGOSupplier<T>> getSuppliers() {
         return new ArrayList<>(suppliers);

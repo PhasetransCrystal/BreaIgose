@@ -1,26 +1,36 @@
 package com.phasetranscrystal.igose.supplier;
 
 import com.phasetranscrystal.igose.BreaIgose;
+import com.phasetranscrystal.igose.content_type.IContentType;
+import com.phasetranscrystal.igose.extractor.ExtractResultPreview;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
-//TODO contentStack化改造。ContentStack为只读/副本模型，不直接造成变动。
 public interface IGOSupplier<T> {
     ResourceLocation NAME = BreaIgose.location("igm_supplier");
 
-    Class<T> targetClass();
+    IContentType<T> getType();
 
     int size();
 
-    T get(int index);
+    //copied data.
+    IContentType.Stack<T> get(int index);
 
-    boolean set(int index, T value);
+    boolean set(int index, IContentType.Stack<T> value);
+
+    default boolean set(int index, T value, double count) {
+        return set(index, new IContentType.Stack<>(getType(), value, count));
+    }
 
     boolean setCount(int index, double count);
 
     //return: object remain that can't add in. empty means no remained.
-    Optional<T> add(int index, T value);
+    IContentType.Stack<T> add(int index, IContentType.Stack<T> value);
+
+    default IContentType.Stack<T> add(int index, T value, double count) {
+        return add(index, new IContentType.Stack<>(getType(), value, count));
+    }
 
     //return: count added
     double addCount(int index, double count);
@@ -31,7 +41,7 @@ public interface IGOSupplier<T> {
     }
 
     //return: extracted object. empty means nothing extracted.
-    Optional<T> extractCount(int index, double count, boolean greedy);
+    IContentType.Stack<T> extractCount(int index, double count, boolean greedy);
 
     boolean isVariable();
 
@@ -59,15 +69,15 @@ public interface IGOSupplier<T> {
 
     void boostrapChange();
 
-    interface Converter<F, T> {
-        ResourceLocation NAME = ArkdustNonatomic.location("igm_supplier_dispatcher");
-
-        Class<F> originalTargetClass();
-
-        Class<T> resultTargetClass();
-
-        IGOSupplier<T> transform(IGOSupplier<F> obj);
-    }
+//    interface Converter<F, T> {
+//        ResourceLocation NAME = BreaIgose.location("igm_supplier_dispatcher");
+//
+//        Class<F> originalTargetClass();
+//
+//        Class<T> resultTargetClass();
+//
+//        IGOSupplier<T> transform(IGOSupplier<F> obj);
+//    }
 
 //    // 组供应器
 //    public record SupplierGroup(List<IGOSupplier<?>> suppliers) {

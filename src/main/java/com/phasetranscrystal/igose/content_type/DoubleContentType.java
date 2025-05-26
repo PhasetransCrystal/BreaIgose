@@ -12,6 +12,11 @@ public class DoubleContentType implements IContentType<Double> {
     }
 
     @Override
+    public boolean isEmpty(Double value) {
+        return value == 0;
+    }
+
+    @Override
     public Double copy(Double obj) {
         return obj;
     }

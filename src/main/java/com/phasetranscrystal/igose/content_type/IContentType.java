@@ -14,11 +14,21 @@ public interface IContentType<T> {
 
     //---[数据比对]---
 
-    boolean isSame(T obj1, T obj2);
+    default boolean isSame(T obj1, T obj2) {
+        return copy(obj1).equals(copy(obj2));
+    }
+
+    ;
+
+    boolean isEmpty(T value);
 
     T copy(T obj);
 
     T createEmpty();
+
+    default Stack<T> createEmptyStack() {
+        return new Stack<>(this, createEmpty(), 0);
+    }
 
     T wildcard(T root);
 
@@ -30,6 +40,16 @@ public interface IContentType<T> {
         return createStack(root, 1);
     }
 
+    default Stack<T> createCopyStack(T root, double count) {
+        return new Stack<>(this, copy(root), count);
+    }
+
+    /**
+     * ContentStack
+     * 此对象可被视为特征与数量的分离，以ItemStack为例，前者可以视为物品与附加数据和混合，后者是物品数量。
+     * 此对象在正常情况下是复制对象，不直接对数据造成更改。
+     * 更改请使用{@link com.phasetranscrystal.igose.supplier.IGOSupplier#set(int, Object, double)}之类。
+     */
     class Stack<T> {
         public final IContentType<T> type;
         private T identity;
@@ -39,6 +59,10 @@ public interface IContentType<T> {
             this.type = type;
             this.identity = identity == null ? type.createEmpty() : identity;
             setCount(count);
+        }
+
+        public boolean isEmpty() {
+            return identity == null || type.isEmpty(identity) || count == 0;
         }
 
         public double getCount() {

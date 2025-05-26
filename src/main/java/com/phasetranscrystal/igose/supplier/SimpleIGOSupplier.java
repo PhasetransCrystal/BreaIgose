@@ -1,6 +1,6 @@
 package com.phasetranscrystal.igose.supplier;
 
-import com.phasetranscrystal.nonard.migrate.ingame_obj_se.extractor.ExtractResultPreview;
+import com.phasetranscrystal.igose.extractor.ExtractResultPreview;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +8,11 @@ import java.util.List;
 public abstract class SimpleIGOSupplier<T> implements IGOSupplier<T>{
     protected final List<IGOSupplier<T>> parent = new ArrayList<>();
     protected ExtractResultPreview<T> lastResultPreview;
+    public final boolean isSnapshot;
+
+    public SimpleIGOSupplier(boolean isSnapshot) {
+        this.isSnapshot = isSnapshot;
+    }
 
     @Override
     public void bootstrapResultPreview(ExtractResultPreview<T> resultPreview) {
@@ -18,6 +23,11 @@ public abstract class SimpleIGOSupplier<T> implements IGOSupplier<T>{
     public void boostrapChange() {
         this.lastResultPreview = null;
         parent.forEach(IGOSupplier::boostrapChange);
+    }
+
+    @Override
+    public boolean isSnapshot() {
+        return isSnapshot;
     }
 
     @Override
