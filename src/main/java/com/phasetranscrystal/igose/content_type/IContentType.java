@@ -1,16 +1,11 @@
 package com.phasetranscrystal.igose.content_type;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.doubles.DoubleDoublePair;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-
-import java.util.Optional;
 
 public interface IContentType<T> {
     Class<T> getContentClass();
+
+    Codec<T> codec();
 
     //---[数据比对]---
 
@@ -18,7 +13,9 @@ public interface IContentType<T> {
         return copy(obj1).equals(copy(obj2));
     }
 
-    ;
+    default boolean classMatch(Object obj){
+        return getContentClass().isInstance(obj);
+    }
 
     boolean isEmpty(T value);
 

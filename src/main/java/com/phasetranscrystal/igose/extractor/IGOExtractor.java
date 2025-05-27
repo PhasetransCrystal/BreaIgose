@@ -63,6 +63,7 @@ public interface IGOExtractor<T> {
      * @param greedy   是否为贪婪提取，可能对例如原版桶之类的有数量分层限制的对象有用
      */
     //TODO 贪婪模式再回收重构
+    //TODO 多供应器修改捕捉后对判断快照是否应该回退in need
     default ExtractResultPreview<T> extractWithoutSimulate(IGOSupplier<T> supplier, boolean greedy) {
         double count = requestCount(), originCount = count;
         Int2ObjectMap<T> map = new Int2ObjectOpenHashMap<>();

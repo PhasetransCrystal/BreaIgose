@@ -7,25 +7,25 @@ import net.minecraft.tags.TagKey;
 
 import java.util.Optional;
 
-public abstract class RegistryContentType<T, R> implements IContentType<T> {
+public interface RegistryContentType<T, R> extends IContentType<T> {
 
-    public abstract Registry<R> getRegistry();
+    Registry<R> getRegistry();
 
-    public abstract R transform(T t);
+    R transform(T t);
 
-    public Optional<ResourceKey<R>> getRK(T t) {
+    default Optional<ResourceKey<R>> getRK(T t) {
         return getRegistry().getResourceKey(transform(t));
     }
 
-    public ResourceLocation getRL(T t) {
+    default ResourceLocation getRL(T t) {
         return getRegistry().getKey(transform(t));
     }
 
-    public boolean is(ResourceLocation key, T t) {
+    default boolean is(ResourceLocation key, T t) {
         return is(TagKey.create(getRegistry().key(), key), t);
     }
 
-    public boolean is(TagKey<R> key, T t) {
+    default boolean is(TagKey<R> key, T t) {
         return getRegistry().getOrCreateTag(key).contains(getRegistry().wrapAsHolder(transform(t)));
     }
 
