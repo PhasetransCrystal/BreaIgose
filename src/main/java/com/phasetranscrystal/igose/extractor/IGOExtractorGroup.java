@@ -2,7 +2,7 @@ package com.phasetranscrystal.igose.extractor;
 
 
 import com.mojang.datafixers.util.Either;
-import com.phasetranscrystal.nonard.migrate.ingame_obj_se.supplier.IGOSupplier;
+import com.phasetranscrystal.igose.supplier.IGOSupplier;
 
 import java.util.*;
 import java.util.stream.Collector;
@@ -60,7 +60,7 @@ public class IGOExtractorGroup<T> {
 
     public Either<ExtractResult<T>, ExtractResultPreview<T>> extractIfAllMatch(IGOSupplier<T> supplier, boolean greedy) {
         ExtractResultPreview<T> preview = extractFrom(supplier, greedy);
-        if (preview.allExtractorMatched()) return Either.left(preview.directlyExecute());
+        if (preview.allExtractorMatched()) return Either.left(preview.uncheckedExecute());
         else return Either.right(preview);
     }
 

@@ -1,9 +1,16 @@
 package com.phasetranscrystal.igose.content_type;
 
+import com.mojang.serialization.Codec;
+
 public class DoubleContentType implements IContentType<Double> {
     @Override
     public Class<Double> getContentClass() {
         return Double.class;
+    }
+
+    @Override
+    public Codec<Double> codec() {
+        return Codec.DOUBLE;
     }
 
     @Override

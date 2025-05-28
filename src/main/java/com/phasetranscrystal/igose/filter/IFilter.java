@@ -2,8 +2,12 @@ package com.phasetranscrystal.igose.filter;
 
 import com.phasetranscrystal.igose.content_type.IContentType;
 
-public interface IFilter<T> {
+public interface IFilter<T extends IFilter<T>> {
 
-    IContentType<T> contentType();
+    FilterType<T> getFilterType();
+
+    default boolean contentTypeMatch(IContentType<?> contentType) {
+        return getFilterType().contentTypeMatch(contentType);
+    }
 
 }

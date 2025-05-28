@@ -112,7 +112,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     public boolean isVariable(int index) {
         if(index < 0 || index >= size()) return false;
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
-        return pair.first().isVariable(pair.second());
+        return pair.first().isVariable(pair.rightInt());
     }
 
     //--[信息处理]--

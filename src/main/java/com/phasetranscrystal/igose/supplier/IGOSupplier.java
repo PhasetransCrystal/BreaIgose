@@ -61,6 +61,10 @@ public interface IGOSupplier<T> {
 
     boolean checkAvailability(ExtractResultPreview<T> resultPreview);
 
+    default void doExecute(ExtractResultPreview<T> resultPreview) {
+
+    }
+
     void bootstrapResultPreview(ExtractResultPreview<T> resultPreview);
 
     void addChangeFeedback(IGOSupplier<T> supplier);

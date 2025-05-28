@@ -1,6 +1,10 @@
 package com.phasetranscrystal.igose.content_type;
 
 import com.mojang.serialization.Codec;
+import com.phasetranscrystal.igose.NewRegistries;
+import com.phasetranscrystal.igose.filter.FilterType;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 
 public interface IContentType<T> {
     Class<T> getContentClass();
@@ -13,7 +17,7 @@ public interface IContentType<T> {
         return copy(obj1).equals(copy(obj2));
     }
 
-    default boolean classMatch(Object obj){
+    default boolean classMatch(Object obj) {
         return getContentClass().isInstance(obj);
     }
 
@@ -39,6 +43,14 @@ public interface IContentType<T> {
 
     default Stack<T> createCopyStack(T root, double count) {
         return new Stack<>(this, copy(root), count);
+    }
+
+    default ResourceKey<IContentType<?>> getResourceKey() {
+        return NewRegistries.CONTENT_TYPE.getResourceKey(this).get();
+    }
+
+    default ResourceLocation getLocation() {
+        return getResourceKey().location();
     }
 
     /**

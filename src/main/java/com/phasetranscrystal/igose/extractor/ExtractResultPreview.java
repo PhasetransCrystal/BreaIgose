@@ -2,10 +2,12 @@ package com.phasetranscrystal.igose.extractor;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Pair;
-import com.phasetranscrystal.nonard.migrate.ingame_obj_se.supplier.IGOSupplier;
+import com.phasetranscrystal.igose.content_type.IContentType;
+import com.phasetranscrystal.igose.supplier.IGOSupplier;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ExtractResultPreview<T> {
@@ -23,21 +25,29 @@ public class ExtractResultPreview<T> {
         return new ExtractResult<>(this);
     }
 
-    //TODO EXECUTE
-    public ExtractResult<T> execute(){
-
+    /**
+     * 根据供应器进行可用性检查，然后执行。
+     *
+     * @return 提取结果，若为empty则表示检查不成功。
+     */
+    public Optional<ExtractResult<T>> execute() {
+        if (root.checkAvailability(this)) {
+            return Optional.of(uncheckedExecute());
+        }
+        return Optional.empty();
     }
 
-    ExtractResult<T> directlyExecute(){
-
+    ExtractResult<T> uncheckedExecute() {
+        children.stream().map(c -> c.executor).forEach(c -> c.accept(root));
+        return asDirectResult();
     }
 
 
-    public ExtractResultPreview(IGOSupplier<T> root, boolean greedy, IGOExtractor<T> extractor, double requiredCount, double extractedCount, ImmutableMap<Integer, T> extractedByIndex, Consumer<IGOSupplier<T>> executor) {
+    public ExtractResultPreview(IGOSupplier<T> root, boolean greedy, IGOExtractor<T> extractor, double requiredCount, double extractedCount, ImmutableMap<Integer, IContentType.Stack<T>> extractedByIndex, Consumer<IGOSupplier<T>> executor) {
         this(root, greedy, List.of(new Child<>(extractor, extractedCount, requiredCount, extractedByIndex, executor)));
     }
 
-    public ExtractResultPreview(IGOSupplier<T> root, boolean greedy, IGOExtractor<T> extractor, double requiredCount, double extractedCount, ImmutableMap<Integer, T> extractedByIndex,
+    public ExtractResultPreview(IGOSupplier<T> root, boolean greedy, IGOExtractor<T> extractor, double requiredCount, double extractedCount, ImmutableMap<Integer, IContentType.Stack<T>> extractedByIndex,
                                 ImmutableMap<Integer, Double> extractedByCount, Consumer<IGOSupplier<T>> executor) {
         this(root, greedy, List.of(new Child<>(extractor, extractedCount, requiredCount, extractedByIndex, extractedByCount, executor)));
     }
@@ -59,11 +69,11 @@ public class ExtractResultPreview<T> {
         public final IGOExtractor<T> extractor;
         public final double requiredCount;
         public final double extractedCount;
-        public final ImmutableMap<Integer, T> extractedByIndex;
+        public final ImmutableMap<Integer, IContentType.Stack<T>> extractedByIndex;
         public final ImmutableMap<Integer, Double> extractedByCount;
         protected final Consumer<IGOSupplier<T>> executor;
 
-        public Child(IGOExtractor<T> extractor, double required, double extractedCount, ImmutableMap<Integer, T> extractedByIndex,
+        public Child(IGOExtractor<T> extractor, double required, double extractedCount, ImmutableMap<Integer, IContentType.Stack<T>> extractedByIndex,
                      ImmutableMap<Integer, Double> extractedByCount, Consumer<IGOSupplier<T>> executor) {
             this.extractor = extractor;
             this.requiredCount = required;
@@ -73,9 +83,9 @@ public class ExtractResultPreview<T> {
             this.executor = executor;
         }
 
-        public Child(IGOExtractor<T> extractor, double required, double extractedCount, ImmutableMap<Integer, T> extractedByIndex, Consumer<IGOSupplier<T>> executor) {
+        public Child(IGOExtractor<T> extractor, double required, double extractedCount, ImmutableMap<Integer, IContentType.Stack<T>> extractedByIndex, Consumer<IGOSupplier<T>> executor) {
             this(extractor, required, extractedCount, extractedByIndex,
-                    ImmutableMap.ofEntries((Map.Entry<Integer, Double>[]) extractedByIndex.entrySet().stream().map(e -> Pair.of(e.getKey(), extractor.getCountFromTarget(e.getValue()))).toArray()),
+                    ImmutableMap.ofEntries((Map.Entry<Integer, Double>[]) extractedByIndex.entrySet().stream().map(e -> Pair.of(e.getKey(), e.getValue().getCount())).toArray()),
                     executor);
         }
 
