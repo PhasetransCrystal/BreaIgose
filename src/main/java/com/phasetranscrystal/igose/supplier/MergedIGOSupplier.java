@@ -1,18 +1,17 @@
 package com.phasetranscrystal.igose.supplier;
 
 import com.google.common.collect.ImmutableList;
-import com.phasetranscrystal.igose.content_type.IContentType;
+import com.phasetranscrystal.igose.content_type.IGOContentType;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     public static final Logger LOGGER = LogManager.getLogger("BreaIgose:IGOSupplier:Merged");
-    public final IContentType<T> typeCache;
+    public final IGOContentType<T> typeCache;
 
     public MergedIGOSupplier(List<IGOSupplier<T>> suppliers, boolean isSnapshot) {
         super(isSnapshot);
@@ -29,17 +28,17 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
         this(List.of(suppliers), isSnapshot);
     }
 
-    public MergedIGOSupplier(IContentType<T> type, boolean isSnapshot) {
+    public MergedIGOSupplier(IGOContentType<T> type, boolean isSnapshot) {
         super(isSnapshot);
         this.typeCache = type;
     }
 
     //only use for create snapshot
-    protected MergedIGOSupplier(List<IGOSupplier<T>> listMutable, IContentType<T> type) {
+    protected MergedIGOSupplier(List<IGOSupplier<T>> listMutable, IGOContentType<T> type) {
         this(listMutable, type, true);
     }
 
-    protected MergedIGOSupplier(List<IGOSupplier<T>> listMutable, IContentType<T> type, boolean isSnapshot) {
+    protected MergedIGOSupplier(List<IGOSupplier<T>> listMutable, IGOContentType<T> type, boolean isSnapshot) {
         super(isSnapshot);
         listMutable.stream().map(IGOSupplier::createSnapshot).forEach(this.suppliers::add);
         this.typeCache = type;
@@ -48,7 +47,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     //--[IGOS]--
 
     @Override
-    public IContentType<T> getType() {
+    public IGOContentType<T> getType() {
         return typeCache;
     }
 
@@ -63,13 +62,13 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     }
 
     @Override
-    public IContentType.Stack<T> get(int index) {
+    public IGOContentType.Stack<T> get(int index) {
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
         return pair.left().get(pair.rightInt());
     }
 
     @Override
-    public boolean set(int index, IContentType.Stack<T> value) {
+    public boolean set(int index, IGOContentType.Stack<T> value) {
         if (!isVariable(index)) return false;
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
         return pair.left().set(pair.rightInt(), value);
@@ -83,7 +82,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     }
 
     @Override
-    public IContentType.Stack<T> add(int index, IContentType.Stack<T> value) {
+    public IGOContentType.Stack<T> add(int index, IGOContentType.Stack<T> value) {
         if (!isVariable(index)) return value;
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
         return pair.left().add(pair.rightInt(), value);
@@ -97,7 +96,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     }
 
     @Override
-    public IContentType.Stack<T> extractCount(int index, double count, boolean greedy) {
+    public IGOContentType.Stack<T> extractCount(int index, double count, boolean greedy) {
         if (!isVariable(index)) return getType().createEmptyStack();
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
         return pair.left().extractCount(pair.rightInt(), count, greedy);
@@ -152,7 +151,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
             this.executor = init();
         }
 
-        Stable(List<IGOSupplier<T>> suppliers, IContentType<T> clazz, boolean isSnapshot) {
+        Stable(List<IGOSupplier<T>> suppliers, IGOContentType<T> clazz, boolean isSnapshot) {
             super(suppliers, clazz, isSnapshot);
             this.length = size();
             this.executor = init();
@@ -177,12 +176,12 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
         }
 
         @Override
-        public IContentType.Stack<T> get(int index) {
+        public IGOContentType.Stack<T> get(int index) {
             return executor.get(index).first().get(executor.get(index).rightInt());
         }
 
         @Override
-        public boolean set(int index, IContentType.Stack<T> value) {
+        public boolean set(int index, IGOContentType.Stack<T> value) {
             if (!isVariable(index)) return false;
             return executor.get(index).left().set(executor.get(index).rightInt(), value);
         }
@@ -194,7 +193,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
         }
 
         @Override
-        public IContentType.Stack<T> add(int index, IContentType.Stack<T> value) {
+        public IGOContentType.Stack<T> add(int index, IGOContentType.Stack<T> value) {
             if (!isVariable(index)) return value;
             return executor.get(index).left().add(executor.get(index).rightInt(), value);
         }
@@ -206,7 +205,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
         }
 
         @Override
-        public IContentType.Stack<T> extractCount(int index, double count, boolean greedy) {
+        public IGOContentType.Stack<T> extractCount(int index, double count, boolean greedy) {
             if (!isVariable(index)) return getType().createEmptyStack();
             return executor.get(index).left().extractCount(executor.get(index).rightInt(), count, greedy);
         }

@@ -1,6 +1,7 @@
 package com.phasetranscrystal.igose.extractor;
 
 import com.google.common.collect.ImmutableMap;
+import com.phasetranscrystal.igose.content_type.IGOContentType;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,8 +20,8 @@ public record ExtractResult<T>(boolean greedy, List<Child<T>> children) {
                 .collect(Collector.of(IGOExtractorGroup::new, IGOExtractorGroup::addExtractor, (a, b) -> a.addExtractors(b.extractors)));
     }
 
-    public record Child<T>(IGOExtractor<T> extractor, boolean valid, double requiredCount, double extractedCount,
-                           ImmutableMap<Integer, T> objByIndex) {
+    public record Child<T>(IGOExtractor extractor, boolean valid, double requiredCount, double extractedCount,
+                           ImmutableMap<Integer, IGOContentType.Stack<T>> objByIndex) {
 
         public Child(ExtractResultPreview.Child<T> child) {
             this(child.extractor, true, child.requiredCount, child.extractedCount, child.extractedByIndex);
@@ -30,8 +31,8 @@ public record ExtractResult<T>(boolean greedy, List<Child<T>> children) {
             return requiredCount <= extractedCount;
         }
 
-        public Optional<IGOExtractor<T>> createFallback() {
-            return matched() ? Optional.empty() : extractor.copyWithRequestCount(valid ? requiredCount - extractedCount : requiredCount);
+        public Optional<IGOExtractor> createFallback() {
+            return matched() ? Optional.empty() : Optional.of(extractor.copyWithRequestCount(valid ? requiredCount - extractedCount : requiredCount));
         }
 
     }

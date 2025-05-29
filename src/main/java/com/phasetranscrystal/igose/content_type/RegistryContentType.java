@@ -7,7 +7,7 @@ import net.minecraft.tags.TagKey;
 
 import java.util.Optional;
 
-public interface RegistryContentType<T, R> extends IContentType<T> {
+public interface RegistryContentType<T, R> extends IGOContentType<T> {
 
     Registry<R> getRegistry();
 

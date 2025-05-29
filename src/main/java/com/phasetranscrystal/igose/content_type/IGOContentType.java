@@ -2,11 +2,10 @@ package com.phasetranscrystal.igose.content_type;
 
 import com.mojang.serialization.Codec;
 import com.phasetranscrystal.igose.NewRegistries;
-import com.phasetranscrystal.igose.filter.FilterType;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
-public interface IContentType<T> {
+public interface IGOContentType<T> {
     Class<T> getContentClass();
 
     Codec<T> codec();
@@ -45,7 +44,7 @@ public interface IContentType<T> {
         return new Stack<>(this, copy(root), count);
     }
 
-    default ResourceKey<IContentType<?>> getResourceKey() {
+    default ResourceKey<IGOContentType<?>> getResourceKey() {
         return NewRegistries.CONTENT_TYPE.getResourceKey(this).get();
     }
 
@@ -60,11 +59,11 @@ public interface IContentType<T> {
      * 更改请使用{@link com.phasetranscrystal.igose.supplier.IGOSupplier#set(int, Object, double)}之类。
      */
     class Stack<T> {
-        public final IContentType<T> type;
+        public final IGOContentType<T> type;
         private T identity;
         private double count;
 
-        public Stack(IContentType<T> type, T identity, double count) {
+        public Stack(IGOContentType<T> type, T identity, double count) {
             this.type = type;
             this.identity = identity == null ? type.createEmpty() : identity;
             setCount(count);
@@ -90,7 +89,7 @@ public interface IContentType<T> {
             this.identity = identity == null ? this.identity : identity;
         }
 
-        public IContentType<T> getType() {
+        public IGOContentType<T> getType() {
             return type;
         }
 
