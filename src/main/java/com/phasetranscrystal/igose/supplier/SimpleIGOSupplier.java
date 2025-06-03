@@ -5,13 +5,15 @@ import com.phasetranscrystal.igose.extractor.ExtractResultPreview;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class SimpleIGOSupplier<T> implements IGOSupplier<T>{
+public abstract class SimpleIGOSupplier<T> implements IGOSupplier<T> {
     protected final List<IGOSupplier<T>> parent = new ArrayList<>();
     protected ExtractResultPreview<T> lastResultPreview;
     public final boolean isSnapshot;
+    public final boolean isRoot;
 
-    public SimpleIGOSupplier(boolean isSnapshot) {
+    public SimpleIGOSupplier(boolean isSnapshot, boolean isRoot) {
         this.isSnapshot = isSnapshot;
+        this.isRoot = isRoot;
     }
 
     @Override

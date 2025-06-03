@@ -1,94 +1,58 @@
 package com.phasetranscrystal.igose.extractor;
 
-
-import com.mojang.datafixers.util.Either;
+import com.google.common.collect.ImmutableMap;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import com.phasetranscrystal.igose.supplier.IGOSupplier;
+import com.phasetranscrystal.igose.supplier.IGOSupplierGroup;
 
-import java.util.*;
-import java.util.stream.Collector;
+import java.util.HashMap;
+import java.util.Map;
 
-public class IGOExtractorGroup<T> {
-    public final IGOContentType<T> contentType;
-    protected final List<IGOExtractor> extractors = new ArrayList<>();
+public class IGOExtractorGroup {
+    protected final Map<IGOContentType<?>, IGOExtractorSet<?>> extractors = new HashMap<>();
 
-    public IGOExtractorGroup(IGOContentType<T> contentType) {
-        this.contentType = contentType;
+    public IGOExtractorGroup() {
     }
 
-    public IGOExtractorGroup(IGOExtractor extractor, IGOContentType<T> contentType) {
-        this.contentType = contentType;
-        if (extractor.canExtractFromType(contentType))
-            extractors.add(extractor);
+    public IGOExtractorGroup(Map<IGOContentType<?>, IGOExtractorSet<?>> extractors) {
+        extractors.entrySet().stream().filter(e -> e.getValue().contentType == e.getKey())
+                .forEach(e -> this.extractors.put(e.getKey(), e.getValue()));
     }
 
-    public IGOExtractorGroup(List<IGOExtractor> extractors, IGOContentType<T> contentType) {
-        this.contentType = contentType;
-        extractors.stream().filter(e -> e.canExtractFromType(contentType)).forEach(this.extractors::add);
+    public <T> IGOExtractorGroup(IGOContentType<T> type, IGOExtractorSet<T> set) {
+        extractors.put(type, set);
     }
 
-    public IGOExtractorGroup(IGOContentType<T> contentType, IGOExtractor... extractors) {
-        this(Arrays.asList(extractors), contentType);
+    public IGOExtractorGroup(IGOContentType<?> type, IGOExtractor extractor) {
+        extractors.put(type, new IGOExtractorSet<>(type, extractor));
     }
 
-    public boolean addExtractor(IGOExtractor extractor) {
-        if (extractors.contains(extractor) || !extractor.canExtractFromType(contentType)) return false;
-        extractors.add(extractor);
-        return true;
+    public <T> IGOExtractorSet<T> set(IGOExtractorSet<T> set) {
+        return (IGOExtractorSet<T>) extractors.put(set.contentType, set);
     }
 
-    public IGOExtractorGroup<T> merge(IGOExtractorGroup<T> other) {
-        if (other.contentType == this.contentType) {
-            other.extractors.stream().filter(e -> !this.extractors.contains(e)).forEach(this.extractors::add);
-        }
-        return this;
+    public <T> void merge(IGOExtractorSet<T> set) {
+        if (extractors.containsKey(set.contentType))
+            ((IGOExtractorSet<T>) extractors.get(set.contentType)).merge(set);
+        else
+            extractors.put(set.contentType, set);
     }
 
-    public List<IGOExtractor> addExtractors(List<IGOExtractor> extractors) {
-        return extractors.stream().filter(this::addExtractor).toList();
+    public boolean add(IGOExtractor extractor, IGOContentType<?> type){
+        return extractors.computeIfAbsent(type,IGOExtractorSet::new).addExtractor(extractor);
     }
 
-    public boolean removeExtractor(IGOExtractor extractor) {
-        return extractors.remove(extractor);
+    public boolean remove(IGOExtractor extractor, IGOContentType<?> type){
+        return extractors.containsKey(type) && extractors.get(type).removeExtractor(extractor);
     }
 
-    public List<IGOExtractor> removeExtractors(List<IGOExtractor> extractors) {
-        return extractors.stream().filter(this::removeExtractor).toList();
+    public ImmutableMap<IGOContentType<?>, IGOExtractorSet<?>> getExtractors() {
+        return ImmutableMap.copyOf(extractors);
     }
 
-    public boolean containsExtractor(IGOExtractor extractor) {
-        return extractors.contains(extractor);
+    public Map<IGOContentType<?>,ExtractResultPreview<?>> extractFrom(IGOSupplierGroup supplier, boolean greedy) {
+        //TODO typeTrans部分
     }
 
-    public List<IGOExtractor> getExtractors() {
-        return new ArrayList<>(extractors);
-    }
-
-    public ExtractResultPreview<T> extractFrom(IGOSupplier<T> supplier, boolean greedy) {
-        IGOSupplier<T> snapshot = supplier.createSnapshot();
-        List<ExtractResultPreview<T>> results = new ArrayList<>();
-        for (IGOExtractor extractor : extractors) {
-            results.add(extractor.extractWithoutSimulate(snapshot, greedy));
-        }
-        ExtractResultPreview<T> result = new ExtractResultPreview<>(supplier, greedy, results.stream().flatMap(preview -> preview.children.stream()).toList());
-        supplier.bootstrapResultPreview(result);
-        return result;
-    }
-
-    public Either<ExtractResult<T>, ExtractResultPreview<T>> extractIfAllMatch(IGOSupplier<T> supplier, boolean greedy) {
-        ExtractResultPreview<T> preview = extractFrom(supplier, greedy);
-        if (preview.allExtractorMatched()) return Either.left(preview.uncheckedExecute());
-        else return Either.right(preview);
-    }
-
-    public static <T> List<IGOExtractor> groupUnmatched(ExtractResultPreview<T> preview) {
-        return preview.findNotMatched().stream().map(c -> c.extractor.copyWithRequestCount(c.requiredCount - c.extractedCount)).toList();
-    }
-
-    public static <T> IGOExtractorGroup<T> groupUnmatchedToIGOEGroup(ExtractResultPreview<T> preview) {
-        IGOExtractorGroup<T> extractorGroup = new IGOExtractorGroup<>(preview.root.getType());
-        groupUnmatched(preview).forEach(extractorGroup::addExtractor);
-        return extractorGroup;
-    }
 
 }

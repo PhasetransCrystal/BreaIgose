@@ -1,8 +1,8 @@
 package com.phasetranscrystal.igose.extractor;
 
 import com.google.common.collect.ImmutableMap;
-import com.mojang.serialization.Codec;
 import com.phasetranscrystal.igose.BreaIgose;
+import com.phasetranscrystal.igose.content_type.ContentStack;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import com.phasetranscrystal.igose.filter.IGOFilter;
 import com.phasetranscrystal.igose.supplier.IGOSupplier;
@@ -33,7 +33,7 @@ public interface IGOExtractor {
         return targetFilter().contentTypeMatch(type);
     }
 
-    default boolean canExtractFrom(IGOContentType.Stack<?> root) {
+    default boolean canExtractFrom(ContentStack<?> root) {
         return targetFilter().filter(root);
     }
 
@@ -55,13 +55,13 @@ public interface IGOExtractor {
     //在greedy情况下，是否需要重新回滚以减少多余的消耗？
     default <T> ExtractResultPreview<T> extractWithoutSimulate(IGOSupplier<T> supplier, boolean greedy) {
         double count = requestCount(), originCount = count;
-        Int2ObjectMap<IGOContentType.Stack<T>> map = new Int2ObjectOpenHashMap<>();
+        Int2ObjectMap<ContentStack<T>> map = new Int2ObjectOpenHashMap<>();
         Int2DoubleMap valueMap = new Int2DoubleOpenHashMap();
 
         for (int index = 0; index < supplier.size(); index++) {
             if (!supplier.isVariable(index) || !canExtractFrom(supplier.get(index))) continue;
 
-            IGOContentType.Stack<T> value = supplier.extractCount(index, count, greedy);
+            ContentStack<T> value = supplier.extractCount(index, count, greedy);
             if (value.isEmpty()) continue;
 
             double consumed = value.getCount();
@@ -75,12 +75,12 @@ public interface IGOExtractor {
         }
 
         count = originCount - count;
-        ImmutableMap<Integer, IGOContentType.Stack<T>> objMapResult = ImmutableMap.copyOf(map);
+        ImmutableMap<Integer, ContentStack<T>> objMapResult = ImmutableMap.copyOf(map);
         ImmutableMap<Integer, Double> countMapResult = ImmutableMap.copyOf(valueMap);
         return new ExtractResultPreview<>(supplier, greedy, this, originCount, count, objMapResult, countMapResult, createExecutor(countMapResult, objMapResult, supplier, greedy, originCount, count));
     }
 
-    default <T> Consumer<IGOSupplier<T>> createExecutor(ImmutableMap<Integer, Double> valueMap, ImmutableMap<Integer, IGOContentType.Stack<T>> objMap,
+    default <T> Consumer<IGOSupplier<T>> createExecutor(ImmutableMap<Integer, Double> valueMap, ImmutableMap<Integer, ContentStack<T>> objMap,
                                                     IGOSupplier<T> supplier, boolean isGreedy, double requiredCount, double extractedCount) {
         return sup -> valueMap.forEach(sup::removeCount);
     }

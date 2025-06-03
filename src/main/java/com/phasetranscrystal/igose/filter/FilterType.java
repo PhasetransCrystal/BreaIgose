@@ -2,6 +2,7 @@ package com.phasetranscrystal.igose.filter;
 
 import com.mojang.serialization.Codec;
 import com.phasetranscrystal.igose.NewRegistries;
+import com.phasetranscrystal.igose.content_type.ContentStack;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +20,7 @@ public record FilterType<T extends IGOFilter<T>>(Codec<T> codec, Optional<Suppli
         return rootFiltrationType.isEmpty() || rootFiltrationType.get().get() == contentType;
     }
 
-    public boolean contentTypeMatch(IGOContentType.Stack<?> stack) {
+    public boolean contentTypeMatch(ContentStack<?> stack) {
         return contentTypeMatch(stack.getType());
     }
 

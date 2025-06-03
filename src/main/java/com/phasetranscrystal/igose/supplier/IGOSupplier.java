@@ -1,6 +1,7 @@
 package com.phasetranscrystal.igose.supplier;
 
 import com.phasetranscrystal.igose.BreaIgose;
+import com.phasetranscrystal.igose.content_type.ContentStack;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import com.phasetranscrystal.igose.extractor.ExtractResultPreview;
 import net.minecraft.resources.ResourceLocation;
@@ -13,21 +14,21 @@ public interface IGOSupplier<T> {
     int size();
 
     //copied data.
-    IGOContentType.Stack<T> get(int index);
+    ContentStack<T> get(int index);
 
-    boolean set(int index, IGOContentType.Stack<T> value);
+    boolean set(int index, ContentStack<T> value);
 
     default boolean set(int index, T value, double count) {
-        return set(index, new IGOContentType.Stack<>(getType(), value, count));
+        return set(index, new ContentStack<>(getType(), value, count));
     }
 
     boolean setCount(int index, double count);
 
     //return: object remain that can't add in. empty means no remained.
-    IGOContentType.Stack<T> add(int index, IGOContentType.Stack<T> value);
+    ContentStack<T> add(int index, ContentStack<T> value);
 
-    default IGOContentType.Stack<T> add(int index, T value, double count) {
-        return add(index, new IGOContentType.Stack<>(getType(), value, count));
+    default ContentStack<T> add(int index, T value, double count) {
+        return add(index, new ContentStack<>(getType(), value, count));
     }
 
     //return: count added
@@ -39,7 +40,9 @@ public interface IGOSupplier<T> {
     }
 
     //return: extracted object. empty means nothing extracted.
-    IGOContentType.Stack<T> extractCount(int index, double count, boolean greedy);
+    ContentStack<T> extractCount(int index, double count, boolean greedy);
+
+    boolean isEmpty();
 
     boolean isVariable();
 

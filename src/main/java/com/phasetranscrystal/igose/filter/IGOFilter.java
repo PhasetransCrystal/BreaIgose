@@ -1,5 +1,6 @@
 package com.phasetranscrystal.igose.filter;
 
+import com.phasetranscrystal.igose.content_type.ContentStack;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -15,9 +16,9 @@ public interface IGOFilter<T extends IGOFilter<T>> {
         return getFilterType().contentTypeMatch(contentType);
     }
 
-    boolean doFilter(IGOContentType.Stack<?> stack);
+    boolean doFilter(ContentStack<?> stack);
 
-    default boolean filter(IGOContentType.Stack<?> stack) {
+    default boolean filter(ContentStack<?> stack) {
         return contentTypeMatch(stack.getType()) && doFilter(stack);
     }
 

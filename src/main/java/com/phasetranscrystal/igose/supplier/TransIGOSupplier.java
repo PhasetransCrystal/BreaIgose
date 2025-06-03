@@ -1,5 +1,6 @@
 package com.phasetranscrystal.igose.supplier;
 
-public class ConvertedIGOSupplier {
+//TODO protected build access
+public class TransIGOSupplier {
     public final IGOSupplierGroup group;
 }

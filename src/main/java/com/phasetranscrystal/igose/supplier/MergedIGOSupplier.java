@@ -1,6 +1,7 @@
 package com.phasetranscrystal.igose.supplier;
 
 import com.google.common.collect.ImmutableList;
+import com.phasetranscrystal.igose.content_type.ContentStack;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.apache.logging.log4j.LogManager;
@@ -62,13 +63,13 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     }
 
     @Override
-    public IGOContentType.Stack<T> get(int index) {
+    public ContentStack<T> get(int index) {
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
         return pair.left().get(pair.rightInt());
     }
 
     @Override
-    public boolean set(int index, IGOContentType.Stack<T> value) {
+    public boolean set(int index, ContentStack<T> value) {
         if (!isVariable(index)) return false;
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
         return pair.left().set(pair.rightInt(), value);
@@ -82,7 +83,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     }
 
     @Override
-    public IGOContentType.Stack<T> add(int index, IGOContentType.Stack<T> value) {
+    public ContentStack<T> add(int index, ContentStack<T> value) {
         if (!isVariable(index)) return value;
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
         return pair.left().add(pair.rightInt(), value);
@@ -96,7 +97,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
     }
 
     @Override
-    public IGOContentType.Stack<T> extractCount(int index, double count, boolean greedy) {
+    public ContentStack<T> extractCount(int index, double count, boolean greedy) {
         if (!isVariable(index)) return getType().createEmptyStack();
         ObjectIntPair<IGOSupplier<T>> pair = indexTarget(index);
         return pair.left().extractCount(pair.rightInt(), count, greedy);
@@ -176,12 +177,12 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
         }
 
         @Override
-        public IGOContentType.Stack<T> get(int index) {
+        public ContentStack<T> get(int index) {
             return executor.get(index).first().get(executor.get(index).rightInt());
         }
 
         @Override
-        public boolean set(int index, IGOContentType.Stack<T> value) {
+        public boolean set(int index, ContentStack<T> value) {
             if (!isVariable(index)) return false;
             return executor.get(index).left().set(executor.get(index).rightInt(), value);
         }
@@ -193,7 +194,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
         }
 
         @Override
-        public IGOContentType.Stack<T> add(int index, IGOContentType.Stack<T> value) {
+        public ContentStack<T> add(int index, ContentStack<T> value) {
             if (!isVariable(index)) return value;
             return executor.get(index).left().add(executor.get(index).rightInt(), value);
         }
@@ -205,7 +206,7 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
         }
 
         @Override
-        public IGOContentType.Stack<T> extractCount(int index, double count, boolean greedy) {
+        public ContentStack<T> extractCount(int index, double count, boolean greedy) {
             if (!isVariable(index)) return getType().createEmptyStack();
             return executor.get(index).left().extractCount(executor.get(index).rightInt(), count, greedy);
         }

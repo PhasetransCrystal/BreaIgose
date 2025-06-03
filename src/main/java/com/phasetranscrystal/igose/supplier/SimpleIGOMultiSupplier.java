@@ -9,7 +9,7 @@ public abstract class SimpleIGOMultiSupplier<T> extends SimpleIGOSupplier<T> imp
     protected final List<IGOSupplier<T>> suppliers = new ArrayList<>();
 
     public SimpleIGOMultiSupplier(boolean isSnapshot) {
-        super(isSnapshot);
+        super(isSnapshot, false);
     }
 
     @Override
@@ -39,6 +39,11 @@ public abstract class SimpleIGOMultiSupplier<T> extends SimpleIGOSupplier<T> imp
         if(!canRemoveSupplier(supplier)) return false;
         supplier.removeChangeFeedback(this);
         return suppliers.remove(supplier);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return suppliers.isEmpty() || suppliers.stream().allMatch(IGOSupplier::isEmpty);
     }
 
     @Override
