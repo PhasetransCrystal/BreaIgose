@@ -4,6 +4,8 @@ package com.phasetranscrystal.igose.extractor;
 import com.mojang.datafixers.util.Either;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import com.phasetranscrystal.igose.supplier.IGOSupplier;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -63,14 +65,21 @@ public class IGOExtractorSet<T> {
         return new ArrayList<>(extractors);
     }
 
-    public ExtractResultPreview<T> extractFrom(IGOSupplier<T> supplier, boolean greedy) {
-        return extractFromSnapshot(supplier.createSnapshot(), greedy);
+    /**
+     * 不要直接调用！DO NOT CALL DIRECTLY!
+     *
+     * @see IGOSupplier#extractBy(IGOExtractorSet, boolean)
+     */
+    @ApiStatus.Internal
+    @Deprecated
+    public ExtractResultPreview<T> extractBySnapshot(IGOSupplier<T> supplier, boolean greedy) {
+        return extract(supplier.createSnapshot(), supplier, greedy);
     }
 
-    protected ExtractResultPreview<T> extractFromSnapshot(IGOSupplier<T> supplier, boolean greedy) {
+    protected ExtractResultPreview<T> extract(IGOSupplier<T> supplier, @Nullable IGOSupplier<T> root, boolean greedy) {
         List<ExtractResultPreview<T>> results = new ArrayList<>();
         for (IGOExtractor extractor : extractors) {
-            results.add(extractor.extractWithoutSimulate(supplier, greedy));
+            results.add(extractor.extract(supplier, root, greedy));
         }
         ExtractResultPreview<T> result = new ExtractResultPreview<>(supplier, greedy, results.stream().flatMap(preview -> preview.children.stream()).toList());
         supplier.bootstrapResultPreview(result);
@@ -78,7 +87,7 @@ public class IGOExtractorSet<T> {
     }
 
     public Either<ExtractResult<T>, ExtractResultPreview<T>> extractIfAllMatch(IGOSupplier<T> supplier, boolean greedy) {
-        ExtractResultPreview<T> preview = extractFrom(supplier, greedy);
+        ExtractResultPreview<T> preview = extractBySnapshot(supplier, greedy);
         if (preview.allExtractorMatched()) return Either.left(preview.uncheckedExecute());
         else return Either.right(preview);
     }

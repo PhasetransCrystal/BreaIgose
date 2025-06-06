@@ -11,7 +11,10 @@ import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public interface IGOExtractor {
@@ -40,8 +43,16 @@ public interface IGOExtractor {
 //    ?
 //    Consumer<IGOSupplier<T>> createExtractionExecutor(T root);
 
-    default <T> ExtractResultPreview<T> extract(IGOSupplier<T> supplier, boolean greedy) {
-        ExtractResultPreview<T> result = extractWithoutSimulate(supplier.createSnapshot(), greedy);
+
+    /**
+     * 不要直接调用！DO NOT CALL DIRECTLY!
+     *
+     * @see IGOSupplier#extractBy(IGOExtractor, boolean)
+     */
+    @ApiStatus.Internal
+    @Deprecated
+    default <T> ExtractResultPreview<T> extractBySnapshot(IGOSupplier<T> supplier, boolean greedy) {
+        ExtractResultPreview<T> result = extract(supplier.createSnapshot(), supplier, greedy);
         supplier.bootstrapResultPreview(result);
         return result;
     }
@@ -53,35 +64,36 @@ public interface IGOExtractor {
      * @param greedy   是否为贪婪提取，可能对例如原版桶之类的有数量分层限制的对象有用
      */
     //在greedy情况下，是否需要重新回滚以减少多余的消耗？
-    default <T> ExtractResultPreview<T> extractWithoutSimulate(IGOSupplier<T> supplier, boolean greedy) {
-        double count = requestCount(), originCount = count;
+    default <T> ExtractResultPreview<T> extract(IGOSupplier<T> supplier, @Nullable IGOSupplier<T> root, boolean greedy) {
+        AtomicReference<Double> count = new AtomicReference<>(requestCount());
+        double originCount = count.get();
         Int2ObjectMap<ContentStack<T>> map = new Int2ObjectOpenHashMap<>();
         Int2DoubleMap valueMap = new Int2DoubleOpenHashMap();
 
-        for (int index = 0; index < supplier.size(); index++) {
-            if (!supplier.isVariable(index) || !canExtractFrom(supplier.get(index))) continue;
+        supplier.foreachSlot((index, sup) -> {
+            if (!sup.isVariable(index) || !canExtractFrom(supplier.get(index))) return false;
 
-            ContentStack<T> value = supplier.extractCount(index, count, greedy);
-            if (value.isEmpty()) continue;
+            ContentStack<T> value = supplier.extractCount(index, count.get(), greedy);
+            if (value.isEmpty()) return false;
 
             double consumed = value.getCount();
-            if (consumed <= 0) continue;
+            if (consumed <= 0) return false;
 
-            count -= consumed;
+            count.updateAndGet(v -> v - consumed);
             map.put(index, value);
             valueMap.put(index, consumed);
 
-            if (count <= 0) break;
-        }
+            return count.get() <= 0;
+        });
 
-        count = originCount - count;
+        count.set(originCount - count.get());
         ImmutableMap<Integer, ContentStack<T>> objMapResult = ImmutableMap.copyOf(map);
         ImmutableMap<Integer, Double> countMapResult = ImmutableMap.copyOf(valueMap);
-        return new ExtractResultPreview<>(supplier, greedy, this, originCount, count, objMapResult, countMapResult, createExecutor(countMapResult, objMapResult, supplier, greedy, originCount, count));
+        return new ExtractResultPreview<>(supplier, greedy, this, originCount, count.get(), objMapResult, countMapResult, createExecutor(countMapResult, objMapResult, root != null ? root : supplier, greedy, originCount, count.get()));
     }
 
     default <T> Consumer<IGOSupplier<T>> createExecutor(ImmutableMap<Integer, Double> valueMap, ImmutableMap<Integer, ContentStack<T>> objMap,
-                                                    IGOSupplier<T> supplier, boolean isGreedy, double requiredCount, double extractedCount) {
+                                                        IGOSupplier<T> supplier, boolean isGreedy, double requiredCount, double extractedCount) {
         return sup -> valueMap.forEach(sup::removeCount);
     }
 }

@@ -1,9 +1,12 @@
 package com.phasetranscrystal.igose.supplier;
 
+import org.apache.commons.lang3.function.ToBooleanBiFunction;
+
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.function.BiConsumer;
 
-public interface IGOMultiSupplier<T> {
+public interface IGOMultiSupplier<T> extends IGOSupplier<T> {
     default boolean isStable() {
         return false;
     }
@@ -11,11 +14,13 @@ public interface IGOMultiSupplier<T> {
     @Nonnull
     List<IGOSupplier<T>> getSuppliers();
 
-    // to igos group //TODO
-//    @Nonnull
-//    default <T> List<IGOSupplier<T>> getSuppliers(@Nonnull Class<T> clazz) {
-//        return getSuppliers().stream().filter(sup -> sup.targetClass() == clazz).map(sup -> (IGOSupplier<T>) sup).toList();
-//    }
+    @Override
+    default boolean foreachSlot(Int2BooleanBiFunction<IGOSupplier<T>> consumer) {
+        for (IGOSupplier<T> supplier : getSuppliers()) {
+            if(supplier.foreachSlot(consumer)) return true;
+        }
+        return false;
+    }
 
     boolean canAddSupplier(IGOSupplier<T> supplier);
 

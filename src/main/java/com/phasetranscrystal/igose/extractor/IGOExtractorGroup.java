@@ -50,9 +50,7 @@ public class IGOExtractorGroup {
         return ImmutableMap.copyOf(extractors);
     }
 
-    public Map<IGOContentType<?>,ExtractResultPreview<?>> extractFrom(IGOSupplierGroup supplier, boolean greedy) {
-        //TODO typeTrans部分
+    public ImmutableMap<IGOContentType<?>, IGOSupplier<?>> extractBySnapshot(IGOSupplierGroup group, boolean greedy) {
+
     }
-
-
 }

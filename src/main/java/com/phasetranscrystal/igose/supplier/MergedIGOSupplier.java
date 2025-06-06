@@ -167,6 +167,11 @@ public class MergedIGOSupplier<T> extends SimpleIGOMultiSupplier<T> {
         }
 
         @Override
+        public boolean isStable() {
+            return true;
+        }
+
+        @Override
         public int size() {
             return length;
         }
