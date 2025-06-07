@@ -4,9 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.phasetranscrystal.igose.content_type.ContentStack;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collector;
 
 //TODO
@@ -36,5 +34,14 @@ public record ExtractResult<T>(boolean greedy, IGOContentType<T> type, List<Chil
             return matched() ? Optional.empty() : Optional.of(extractor.copyWithRequestCount(valid ? requiredCount - extractedCount : requiredCount));
         }
 
+    }
+
+    public record Grouped(boolean greedy, boolean enableTransform, Map<IGOContentType<?>,ExtractResult<?>> results){
+
+        public IGOExtractorGroup createFallback() {
+            HashMap<IGOContentType<?>,IGOExtractorSet<?>> map = new HashMap<>();
+            results.forEach((key, value) -> map.put(key, value.createFallback()));
+            return new IGOExtractorGroup(map);
+        }
     }
 }

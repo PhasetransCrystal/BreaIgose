@@ -50,7 +50,11 @@ public class IGOExtractorGroup {
         return ImmutableMap.copyOf(extractors);
     }
 
-    public ImmutableMap<IGOContentType<?>, IGOSupplier<?>> extractBySnapshot(IGOSupplierGroup group, boolean greedy) {
+    public ImmutableMap<IGOContentType<?>, IGOSupplier<?>> extractBySnapshot(IGOSupplierGroup group, boolean greedy, boolean allowTransform) {
+
+    }
+
+    public ImmutableMap<IGOContentType<?>, IGOSupplier<?>> extractBySnapshot(IGOSupplierGroup group, boolean greedy, boolean allowTransform) {
 
     }
 }

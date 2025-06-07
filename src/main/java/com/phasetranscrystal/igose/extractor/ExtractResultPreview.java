@@ -1,10 +1,14 @@
 package com.phasetranscrystal.igose.extractor;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
 import com.phasetranscrystal.igose.content_type.ContentStack;
+import com.phasetranscrystal.igose.content_type.IGOContentType;
 import com.phasetranscrystal.igose.supplier.IGOSupplier;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,6 +17,19 @@ import java.util.function.Consumer;
 public class ExtractResultPreview<T> {
     public final IGOSupplier<T> root;
     public final boolean greedy;
+
+    public List<Child<T>> getChildren() {
+        return children;
+    }
+
+    public boolean isGreedy() {
+        return greedy;
+    }
+
+    public IGOSupplier<T> getRoot() {
+        return root;
+    }
+
     public final List<Child<T>> children;
 
     public ExtractResultPreview(IGOSupplier<T> root, boolean greedy, List<Child<T>> children) {
@@ -37,11 +54,14 @@ public class ExtractResultPreview<T> {
         return Optional.empty();
     }
 
+    protected boolean checkAvailability() {
+        return root.checkAvailability(this);
+    }
+
     ExtractResult<T> uncheckedExecute() {
         children.stream().map(c -> c.executor).forEach(c -> c.accept(root));
         return asDirectResult();
     }
-
 
     public ExtractResultPreview(IGOSupplier<T> root, boolean greedy, IGOExtractor extractor, double requiredCount, double extractedCount, ImmutableMap<Integer, ContentStack<T>> extractedByIndex, Consumer<IGOSupplier<T>> executor) {
         this(root, greedy, List.of(new Child<>(extractor, extractedCount, requiredCount, extractedByIndex, executor)));
@@ -91,6 +111,63 @@ public class ExtractResultPreview<T> {
 
         public boolean matched() {
             return extractedCount >= requiredCount;
+        }
+    }
+
+    public static class Grouped {
+        public final Map<IGOContentType<?>, ExtractResultPreview<?>> resultPreviewMap;
+        public final boolean isGreedy;
+        public final boolean enableTransform;
+
+        public Grouped(Map<IGOContentType<?>, ExtractResultPreview<?>> resultPreviewMap, boolean isGreedy, boolean enableTransform) {
+            this.resultPreviewMap = ImmutableMap.copyOf(resultPreviewMap);
+            this.isGreedy = isGreedy;
+            this.enableTransform = enableTransform;
+        }
+
+        public ExtractResult.Grouped asDirectResult() {
+            Map<IGOContentType<?>, ExtractResult<?>> map = new HashMap<>();
+            resultPreviewMap.forEach((key, value) -> map.put(key, value.asDirectResult()));
+            return new ExtractResult.Grouped(isGreedy, enableTransform, map);
+        }
+
+        /**
+         * 根据供应器进行可用性检查，然后执行。
+         *
+         * @return 提取结果，若为empty则表示检查不成功。
+         */
+        public Optional<ExtractResult.Grouped> execute() {
+            if (resultPreviewMap.values().stream().allMatch(ExtractResultPreview::checkAvailability)) {
+                return Optional.of(uncheckedExecute());
+            }
+            return Optional.empty();
+        }
+
+        ExtractResult.Grouped uncheckedExecute() {
+            resultPreviewMap.values().forEach(ExtractResultPreview::uncheckedExecute);
+            return asDirectResult();
+        }
+
+        public boolean allExtractorMatched(IGOContentType<?> type) {
+            return Optional.ofNullable(resultPreviewMap.get(type)).map(ExtractResultPreview::allExtractorMatched).orElse(false);
+        }
+
+        public boolean allExtractorMatched() {
+            return resultPreviewMap.values().stream().allMatch(ExtractResultPreview::allExtractorMatched);
+        }
+
+        public boolean anyExtractorMatched(IGOContentType<?> type) {
+            return Optional.ofNullable(resultPreviewMap.get(type)).map(ExtractResultPreview::anyExtractorMatched).orElse(false);
+        }
+
+        public boolean anyExtractorMatched() {
+            return resultPreviewMap.values().stream().anyMatch(ExtractResultPreview::anyExtractorMatched);
+        }
+
+        public Multimap<IGOContentType<?>, Child<?>> findNotMatched() {
+            ImmutableMultimap.Builder<IGOContentType<?>, Child<?>> builder = new ImmutableMultimap.Builder<>();
+            resultPreviewMap.forEach((t, p) -> builder.putAll(t, p.findNotMatched()));
+            return builder.build();
         }
     }
 }

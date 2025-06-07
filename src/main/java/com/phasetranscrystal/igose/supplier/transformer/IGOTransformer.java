@@ -1,8 +1,11 @@
 package com.phasetranscrystal.igose.supplier.transformer;
 
+import com.phasetranscrystal.igose.NewRegistries;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import com.phasetranscrystal.igose.supplier.IGOSupplier;
 import com.phasetranscrystal.igose.supplier.MergedIGOSupplier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +22,12 @@ public abstract class IGOTransformer<F, T> {
         this.toType = toType;
     }
 
-    public abstract IGOSupplier<T> transform(IGOSupplier<F> origin);
+    protected abstract IGOSupplier<T> execute(IGOSupplier<F> origin);
+
+    public IGOSupplier<T> transform(IGOSupplier<F> origin){
+        if(origin.disableTransform(this)) return null;
+        return execute(origin);
+    };
 
     /**
      * 当所有供应器都未转化出有效的
@@ -28,5 +36,13 @@ public abstract class IGOTransformer<F, T> {
         List<IGOSupplier<T>> list = Stream.concat(Stream.of(atLeastOne), Arrays.stream(suppliers))
                 .map(this::transform).filter(Objects::nonNull).filter(IGOSupplier::notEmpty).toList();
         return list.isEmpty() ? Optional.empty() : Optional.of(new MergedIGOSupplier.Stable<>(list, atLeastOne.isSnapshot()));
+    }
+
+    public ResourceKey<IGOTransformer<?, ?>> getResourceKey() {
+        return NewRegistries.TRANSFORMER.getResourceKey(this).get();
+    }
+
+    public ResourceLocation getLocation() {
+        return getResourceKey().location();
     }
 }

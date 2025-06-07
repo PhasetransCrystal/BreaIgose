@@ -6,6 +6,7 @@ import com.phasetranscrystal.igose.content_type.IGOContentType;
 import com.phasetranscrystal.igose.extractor.ExtractResultPreview;
 import com.phasetranscrystal.igose.extractor.IGOExtractor;
 import com.phasetranscrystal.igose.extractor.IGOExtractorSet;
+import com.phasetranscrystal.igose.supplier.transformer.IGOTransformer;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.lang3.function.ToBooleanBiFunction;
 
@@ -71,6 +72,10 @@ public interface IGOSupplier<T> {
 
     default boolean isVariable(int index) {
         return isVariable();
+    }
+
+    default boolean disableTransform(IGOTransformer<T,?> transformer){
+        return false;
     }
 
     //---[执行]---
