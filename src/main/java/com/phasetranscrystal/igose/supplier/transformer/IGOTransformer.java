@@ -39,7 +39,7 @@ public abstract class IGOTransformer<F, T> {
      */
     public Optional<MergedIGOSupplier<T>> transformAll(IGOSupplier<F> atLeastOne, IGOSupplier<F>... suppliers) {
         List<IGOSupplier<T>> list = Stream.concat(Stream.of(atLeastOne), Arrays.stream(suppliers))
-                .map(this::transform).filter(Objects::nonNull).filter(IGOSupplier::notEmpty).toList();
+                .map(this::transform).flatMap(Optional::stream).filter(Objects::nonNull).filter(IGOSupplier::notEmpty).toList();
         return list.isEmpty() ? Optional.empty() : Optional.of(new MergedIGOSupplier.Stable<>(list, atLeastOne.isSnapshot()));
     }
 

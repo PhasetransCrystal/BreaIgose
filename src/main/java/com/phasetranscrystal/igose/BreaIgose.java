@@ -26,7 +26,7 @@ public class BreaIgose {
     }
 
     public static Map<IGOContentType<?>, Map<IGOContentType<?>, IGOTransformer<?, ?>>> getTransformers() {
-        return ModBusEventConsumer.transformers;
+        return ModBusEventConsumer.transformers.get();
     }
 
     public static <T> List<IGOTransformer<?, T>> getTransformers(IGOContentType<T> type) {
