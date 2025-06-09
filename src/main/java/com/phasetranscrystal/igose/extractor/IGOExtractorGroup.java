@@ -1,9 +1,12 @@
 package com.phasetranscrystal.igose.extractor;
 
 import com.google.common.collect.ImmutableMap;
+import com.phasetranscrystal.igose.BreaIgose;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
 import com.phasetranscrystal.igose.supplier.IGOSupplier;
 import com.phasetranscrystal.igose.supplier.IGOSupplierGroup;
+import com.phasetranscrystal.igose.supplier.MergedIGOSupplier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,11 +41,11 @@ public class IGOExtractorGroup {
             extractors.put(set.contentType, set);
     }
 
-    public boolean add(IGOExtractor extractor, IGOContentType<?> type){
-        return extractors.computeIfAbsent(type,IGOExtractorSet::new).addExtractor(extractor);
+    public boolean add(IGOExtractor extractor, IGOContentType<?> type) {
+        return extractors.computeIfAbsent(type, IGOExtractorSet::new).addExtractor(extractor);
     }
 
-    public boolean remove(IGOExtractor extractor, IGOContentType<?> type){
+    public boolean remove(IGOExtractor extractor, IGOContentType<?> type) {
         return extractors.containsKey(type) && extractors.get(type).removeExtractor(extractor);
     }
 
@@ -50,11 +53,27 @@ public class IGOExtractorGroup {
         return ImmutableMap.copyOf(extractors);
     }
 
-    public ImmutableMap<IGOContentType<?>, IGOSupplier<?>> extractBySnapshot(IGOSupplierGroup group, boolean greedy, boolean allowTransform) {
 
+    public ExtractResultPreview.Grouped extractBySnapshot(IGOSupplierGroup group, boolean greedy, boolean allowTransform) {
+        Map<IGOContentType<?>, ExtractResultPreview<?>> map = new HashMap<>();
+        extractors.forEach((type, set) -> {
+            IGOSupplier merged = allowTransform ? transform(type, group.suppliers.values(),(IGOSupplier)group.suppliers.get(type)) : group.suppliers.get(type);
+
+            if (merged != null && !merged.isEmpty()) {
+                map.put(type, set.extract(merged,merged.createSnapshot(),greedy));
+            }
+        });
+        return new ExtractResultPreview.Grouped(map, greedy, allowTransform);
     }
 
-    public ImmutableMap<IGOContentType<?>, IGOSupplier<?>> extractBySnapshot(IGOSupplierGroup group, boolean greedy, boolean allowTransform) {
-
+    public static <T> MergedIGOSupplier<T> transform(IGOContentType<T> contentType, Iterable<IGOSupplier<?>> suppliers, IGOSupplier<T> add) {
+        MergedIGOSupplier<T> merged = new MergedIGOSupplier<>(contentType, false);
+        merged.addSupplierNullable(add);
+        for (IGOSupplier<?> s : suppliers) {
+            BreaIgose.getTransformer(s, contentType)
+                    .flatMap(t -> t.transformByCheck(s))
+                    .ifPresent(merged::addSupplier);
+        }
+        return merged;
     }
 }

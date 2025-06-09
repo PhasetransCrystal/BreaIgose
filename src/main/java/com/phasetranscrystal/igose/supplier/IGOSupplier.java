@@ -8,9 +8,7 @@ import com.phasetranscrystal.igose.extractor.IGOExtractor;
 import com.phasetranscrystal.igose.extractor.IGOExtractorSet;
 import com.phasetranscrystal.igose.supplier.transformer.IGOTransformer;
 import net.minecraft.resources.ResourceLocation;
-import org.apache.commons.lang3.function.ToBooleanBiFunction;
-
-import java.util.Optional;
+import org.jetbrains.annotations.Nullable;
 
 public interface IGOSupplier<T> {
     ResourceLocation NAME = BreaIgose.location("igm_supplier");
@@ -80,13 +78,21 @@ public interface IGOSupplier<T> {
 
     //---[执行]---
 
-    default Optional<ExtractResultPreview<T>> extractBy(IGOExtractor extractor, boolean greedy) {
-        if (extractor.canExtractFromType(getType())) return Optional.of(extractor.extractBySnapshot(this, greedy));
-        return Optional.empty();
+    default ExtractResultPreview<T> extractBy(IGOExtractor extractor, boolean greedy){
+        return extractor.extractBySnapshot(this,greedy);
     }
 
-    default ExtractResultPreview<T> extractBy(IGOExtractorSet<T> extractor, boolean greedy) {
-        return extractor.extractBySnapshot(this, greedy);
+    default ExtractResultPreview<T> extractBy(IGOExtractorSet<T> extractor, boolean greedy){
+        return extractor.extractBySnapshot(this,greedy);
+    }
+
+    default boolean overrideExtract(){
+        return false;
+    }
+
+    //only when override == true
+    default ExtractResultPreview<T> extractOverride(IGOExtractor extractor, @Nullable IGOSupplier<T> root, boolean greedy) {
+        return new ExtractResultPreview<>(root == null ? this : root,greedy);
     }
 
     //---[供应器快照]---

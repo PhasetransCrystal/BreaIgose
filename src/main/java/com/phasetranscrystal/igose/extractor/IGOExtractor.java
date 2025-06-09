@@ -11,7 +11,6 @@ import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,14 +42,6 @@ public interface IGOExtractor {
 //    ?
 //    Consumer<IGOSupplier<T>> createExtractionExecutor(T root);
 
-
-    /**
-     * 不要直接调用！DO NOT CALL DIRECTLY!
-     *
-     * @see IGOSupplier#extractBy(IGOExtractor, boolean)
-     */
-    @ApiStatus.Internal
-    @Deprecated
     default <T> ExtractResultPreview<T> extractBySnapshot(IGOSupplier<T> supplier, boolean greedy) {
         ExtractResultPreview<T> result = extract(supplier.createSnapshot(), supplier, greedy);
         supplier.bootstrapResultPreview(result);
@@ -58,13 +49,15 @@ public interface IGOExtractor {
     }
 
     /**
-     * 从资源供应器中提取对象
+     * 从资源供应器中提取对象。<br>
      *
      * @param supplier 资源的供应器
      * @param greedy   是否为贪婪提取，可能对例如原版桶之类的有数量分层限制的对象有用
      */
     //在greedy情况下，是否需要重新回滚以减少多余的消耗？
     default <T> ExtractResultPreview<T> extract(IGOSupplier<T> supplier, @Nullable IGOSupplier<T> root, boolean greedy) {
+        if(supplier.overrideExtract()) return supplier.extractOverride(this, root ,greedy);
+
         AtomicReference<Double> count = new AtomicReference<>(requestCount());
         double originCount = count.get();
         Int2ObjectMap<ContentStack<T>> map = new Int2ObjectOpenHashMap<>();

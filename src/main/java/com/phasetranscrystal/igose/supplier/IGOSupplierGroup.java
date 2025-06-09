@@ -2,6 +2,7 @@ package com.phasetranscrystal.igose.supplier;
 
 import com.google.common.collect.ImmutableMap;
 import com.phasetranscrystal.igose.content_type.IGOContentType;
+import com.phasetranscrystal.igose.extractor.ExtractResultPreview;
 import com.phasetranscrystal.igose.extractor.IGOExtractorGroup;
 
 import java.util.HashMap;
@@ -35,8 +36,8 @@ public class IGOSupplierGroup {
         return new IGOSupplierGroup(cache, true);
     }
 
-    public ImmutableMap<IGOContentType<?>, IGOSupplier<?>> extractBy(IGOExtractorGroup group, boolean greedy) {
-        return group.extractBySnapshot(this,greedy);
+    public ExtractResultPreview.Grouped extractBy(IGOExtractorGroup group, boolean greedy, boolean allowTransform) {
+        return group.extractBySnapshot(this,greedy,allowTransform);
     }
 
 

@@ -65,18 +65,11 @@ public class IGOExtractorSet<T> {
         return new ArrayList<>(extractors);
     }
 
-    /**
-     * 不要直接调用！DO NOT CALL DIRECTLY!
-     *
-     * @see IGOSupplier#extractBy(IGOExtractorSet, boolean)
-     */
-    @ApiStatus.Internal
-    @Deprecated
     public ExtractResultPreview<T> extractBySnapshot(IGOSupplier<T> supplier, boolean greedy) {
         return extract(supplier.createSnapshot(), supplier, greedy);
     }
 
-    protected ExtractResultPreview<T> extract(IGOSupplier<T> supplier, @Nullable IGOSupplier<T> root, boolean greedy) {
+    public ExtractResultPreview<T> extract(IGOSupplier<T> supplier, @Nullable IGOSupplier<T> root, boolean greedy) {
         List<ExtractResultPreview<T>> results = new ArrayList<>();
         for (IGOExtractor extractor : extractors) {
             results.add(extractor.extract(supplier, root, greedy));

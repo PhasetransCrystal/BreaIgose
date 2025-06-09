@@ -32,6 +32,12 @@ public class ExtractResultPreview<T> {
 
     public final List<Child<T>> children;
 
+    public ExtractResultPreview(IGOSupplier<T> root, boolean greedy){
+        this.root = root;
+        this.greedy = greedy;
+        this.children = List.of();
+    }
+
     public ExtractResultPreview(IGOSupplier<T> root, boolean greedy, List<Child<T>> children) {
         this.root = root;
         this.greedy = greedy;

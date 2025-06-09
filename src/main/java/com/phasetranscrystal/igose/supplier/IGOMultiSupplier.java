@@ -28,6 +28,10 @@ public interface IGOMultiSupplier<T> extends IGOSupplier<T> {
 
     boolean addSupplier(IGOSupplier<T> supplier);
 
+    default boolean addSupplierNullable(IGOSupplier<T> supplier){
+        return supplier != null && addSupplier(supplier);
+    };
+
     boolean removeSupplier(IGOSupplier<T> supplier);
 
     boolean containsSupplier(IGOSupplier<T> supplier);

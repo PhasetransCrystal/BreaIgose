@@ -24,9 +24,14 @@ public abstract class IGOTransformer<F, T> {
 
     protected abstract IGOSupplier<T> execute(IGOSupplier<F> origin);
 
-    public IGOSupplier<T> transform(IGOSupplier<F> origin){
-        if(origin.disableTransform(this)) return null;
-        return execute(origin);
+    public Optional<IGOSupplier<T>> transformByCheck(IGOSupplier<?> origin){
+        if(origin.getType() == fromType) return transform((IGOSupplier<F>)origin);
+        return Optional.empty();
+    }
+
+    public Optional<IGOSupplier<T>> transform(IGOSupplier<F> origin){
+        if(origin.disableTransform(this)) return Optional.empty();
+        return Optional.of(execute(origin));
     };
 
     /**
