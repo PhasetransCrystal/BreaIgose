@@ -1,5 +1,8 @@
 package com.phasetranscrystal.igose.content_type;
 
+import com.phasetranscrystal.igose.Registries;
+import net.minecraft.world.item.ItemStack;
+
 /**
  * ContentStack
  * 此对象可被视为特征与数量的分离，以ItemStack为例，前者可以视为物品与附加数据和混合，后者是物品数量。
@@ -66,5 +69,9 @@ public class ContentStack<T> {
 
     public boolean sameWith(ContentStack<T> other) {
         return type.isSame(this.identity, other.identity);
+    }
+
+    public static ContentStack<ItemStack> item(ItemStack stack){
+        return new ContentStack<>(Registries.ITEM_CONTENT_TYPE.get(),stack,stack.getCount());
     }
 }

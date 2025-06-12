@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 public interface IGOExtractor {
-    ResourceLocation NAME = BreaIgose.location("igm_extractor");
 
     IGOFilter<?> targetFilter();
 

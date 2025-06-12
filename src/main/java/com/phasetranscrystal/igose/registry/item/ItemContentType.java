@@ -1,6 +1,7 @@
-package com.phasetranscrystal.igose.registry;
+package com.phasetranscrystal.igose.registry.item;
 
 import com.mojang.serialization.Codec;
+import com.phasetranscrystal.igose.common.item.ItemModifiableContainerContents;
 import com.phasetranscrystal.igose.content_type.RegistryContentType;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,7 +27,7 @@ public class ItemContentType implements RegistryContentType<ItemStack, Item> {
 
     @Override
     public Codec<ItemStack> codec() {
-        return ItemStack.CODEC;
+        return ItemModifiableContainerContents.ITEM_STACK_CODEC_ALLOW0;
     }
 
     @Override
